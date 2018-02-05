@@ -10,7 +10,58 @@
          online at your node.js address under /socket.io/socket.io.js 
          You can disable that on the server if desired
     -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+    
+    <script type="text/babel">
+        const connectSocket = (e) => {
+            const message = document.querySelector("#message");
+            const chat = document.querySelector("#chat");
+            const socket = io.connect();
+            const send = document.querySelector("#send");
+            const userCount = document.querySelector("#userCount");
+            
+            send.addEventListener('click', () => {
+                socket.emit('msgToServer', {msg: message.value});
+            });
+            
+            socket.on('connect', () => {
+                console.log('connecting');
+                
+                let user = document.querySelector("#username").value;
+                
+                if(!user) {
+                    user = 'unknown';
+                }
+                
+                socket.emit('join', { name: user});
+            });
+            
+            socket.on('msg', (data) => {
+                console.log(data);
+                if(data.name === 'server'){
+                    chat.value += `${data.msg} \n`;
+                }
+                else{
+                    chat.value += `${data.name}: ${data.msg} \n`;
+                }
+            });
+            
+            socket.on('updateUserCount', (data) => {
+                 userCount.textContent = data;
+            });
+        };
+
+    
+    
+        const init = () => {
+            const connect = document.querySelector("#connect");
+            connect.addEventListener('click', connectSocket);
+        }
+        
+        window.onload = init;
+    </script>
+    
 	<style>
 		textarea {
 			display: block;
@@ -28,5 +79,6 @@
 	<input id="send" type="button" value="send" />
 	
 	<textarea id="chat" rows="20" cols="40" readonly> </textarea>
+    <p id="userCount">There are 0 users online.</p>
 </body>
 </html>
